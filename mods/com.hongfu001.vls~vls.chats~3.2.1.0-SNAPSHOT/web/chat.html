@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Chatroom web demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="">
+<meta name="author" content="Micha Kops">
+
+<script src="resource/js/jquery-1.10.2.min.js"></script>
+
+<!-- Le styles -->
+<link href="./resource/css/bootstrap.css" rel="stylesheet">
+<style type="text/css">
+body {
+	padding-top: 40px;
+	padding-bottom: 40px;
+	background-color: #f5f5f5;
+}
+
+.form-signin {
+	max-width: 300px;
+	padding: 19px 29px 29px;
+	margin: 0 auto 20px;
+	background-color: #fff;
+	border: 1px solid #e5e5e5;
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;
+	-webkit-box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+	-moz-box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+	box-shadow: 0 1px 2px rgba(0, 0, 0, .05);
+}
+
+.form-signin .form-signin-heading,.form-signin .checkbox {
+	margin-bottom: 10px;
+}
+
+.form-signin input[type="text"],.form-signin input[type="password"] {
+	font-size: 16px;
+	height: auto;
+	margin-bottom: 15px;
+	padding: 7px 9px;
+}
+
+#chatroom {
+	font-size: 16px;
+	height: 40px;
+	line-height: 40px;
+	width: 300px;
+}
+
+.received {
+	width: 160px;
+	font-size: 10px;
+}
+
+#log {height:600px;overflow:auto;border: 1px solid #DDDDDD;}
+#response {height:400px;overflow:auto;border: 1px solid #DDDDDD;}
+#log div{
+	margin:30px 0;
+	background-color:#ffffaa;
+}
+</style>
+<link href="./resource/css/bootstrap-responsive.css" rel="stylesheet">
+
+<!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+<!--[if lt IE 9]>
+      <script src="./resource/js/html5shiv.js"></script>
+    <![endif]-->
+
+<!-- Fav and touch icons -->
+<link rel="apple-touch-icon-precomposed" sizes="144x144"
+	href="./resource/ico/apple-touch-icon-144-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="114x114"
+	href="./resource/ico/apple-touch-icon-114-precomposed.png">
+<link rel="apple-touch-icon-precomposed" sizes="72x72"
+	href="./resource/ico/apple-touch-icon-72-precomposed.png">
+<link rel="apple-touch-icon-precomposed"
+	href="./resource/ico/apple-touch-icon-57-precomposed.png">
+<link rel="shortcut icon" href="./resource/ico/favicon.png">
+<script type="text/javascript">
+var se = document.createElement('script'); 
+se.type='text/javascript';
+se.src = '/chatdemo/conf'; 
+document.getElementsByTagName('head')[0].appendChild(se);
+</script>
+<script type="text/javascript">
+	var wsocket;
+	var $nickName;
+	var $message;
+	var $chatWindow;
+	var room = '';
+	var token='';
+	var chatters;
+	var timerID;
+
+	//function connect(){
+		var json={
+			"c":"connect",
+			"b":{
+				"room":"11"
+			}
+		};
+
+		var conf={};
+		conf.socketHost = "112.124.117.146:40001";
+
+
+		var serviceLocation='ws://'+conf.socketHost+'/chat/';
+		alert(serviceLocation);
+		wsocket=new WebSocket(serviceLocation);
+		wsocket.onopen=function(e){
+			wsocket.send(JSON.stringify(json));
+		}
+		wsocket.onmessage = onMessageReceived;
+	//}
+
+	function onMessageReceived(e){
+		var reply = JSON.parse(e.data);
+		var replyBody = JSON.parse(reply.b);
+
+		switch(replyBody.type){
+			case 'connect':
+				if(replyBody.status){
+					alert(token);
+					token=replyBody.token;
+				}else{
+					if(reply.errorCode==0x11110002){
+						alert('Please enter your nickname!');
+					}else if(reply.errorCode==0x00000004){
+						alert('Nickname was already in use!')
+					}else{
+						alert(reply.error);
+					}
+				}
+				break;
+		}
+	}
+
+	/*
+	$(document).ready(function() {
+		$('#btnConnect').click(function(evt){
+			evt.preventDefault();
+			connect();
+		});
+	}
+	*/	
+</script>
+
+<!--
+<script>
+	var wsocket;
+	var $nickName;
+	var $message;
+	var $chatWindow;
+	var room = '';
+	var token='';
+	var chatters;
+	var timerID;
+	
+	function startTimer(){
+		timerID=setInterval(function(){
+			var json='{"command":"ping","token":"'+token+'"}';
+			wsocket.send(json);
+		},60000);
+	}
+
+	function connect(){
+		var json={};
+		json.command="connect";
+		json.userID="a888888888888";
+		json.avatar="http://www.a.com/a.png";
+		json.nickname=$nickName.val();
+		var serviceLocation='ws://'+conf.socketHost+'/chat/';
+		alert(serviceLocation);
+		wsocket=new WebSocket(serviceLocation);
+		wsocket.onopen=function(e){
+			wsocket.send(JSON.stringify(json));
+		}
+		wsocket.onmessage = onMessageReceived;
+	}
+	
+	function join(){
+		if(!wsocket)
+			return;
+		room = $('#chatroom option:selected').val();
+		var json={};
+		json.command="join";
+		json.token=token;
+		json.room=room;
+		wsocket.send(JSON.stringify(json));
+	}
+	
+	function send(){
+		if(!wsocket)
+			return;
+		var json={};
+		json.command="send";
+		json.token=token;
+		json.room=room;
+		json.message=$message.val();
+		if($('#ckSendPersonal').prop('checked')){
+			json.nickname=$('#personName').val();
+		}
+		wsocket.send(JSON.stringify(json));
+	}
+	
+	function sendMarked(){
+		if(!wsocket)
+			return;
+		var json={};
+		json.command='send_marked';
+		json.token=token;
+		json.room=room;
+		json.message=$message.val();
+		json.deputy='Sophie Marcreau';
+		json.avatar='http://www.a.com/a.jpg';
+		if($('#ckSendPersonal').prop('checked')){
+			json.nickname=$('#personName').val();
+		}
+		wsocket.send(JSON.stringify(json));
+	}
+	
+	function onMessageReceived(e){
+		var msg = JSON.parse(e.data);
+		appendLog(e.data);
+		switch(msg.type){
+			case 'connect':
+				if(msg.success){
+					appendLog('connect succeed, please select a room to join.');
+					token=msg.token;
+					startTimer();
+					//$('#btnConnect').attr('disabled','disabled');
+					//$('#enterRoom').removeAttr('disabled');
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert('Please enter your nickname!');
+					}else if(msg.errorCode==0x00000004){
+						alert('Nickname was already in use!')
+					}else{
+						alert(msg.error);
+					}
+				}
+				break;
+			case 'join':
+				if(msg.success){
+					$('#h2_title').text('### '+$nickName.val() + "### @" + room);
+					chatters=msg.users;
+					refreshChatters();
+					$('.chat-signin').hide();
+					$('.chat-wrapper').show();
+					$message.focus();
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert(msg.error);
+					}else if(msg.errorCode==0x00000002){
+						alert('Join room failed: Your login is invalid, please logout and try it again.');
+					}else if(msg.errorCode==0x00000005){
+						alert('Join room failed: You are already inside the chatroom.');
+					}else{
+						alert('Join room failed: '+msg.error);
+					}
+				}
+				break;
+			case 'part':
+				if(msg.success){
+					$chatWindow.empty();
+					$('.chat-wrapper').hide();
+					$('.chat-signin').show();
+					$nickName.focus();
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert(msg.error);
+					}else if(msg.errorCode==0x00000002){
+						alert('Leave room failed: Your login is invalid, please logout and try it again.');
+					}else if(msg.errorCode==0x00000006){
+						alert('Leave room failed: The chatroom you gonna to leave was not found.');
+					}else if(msg.errorCode==0x00000008){
+						alert('Leave room failed: you are not in the chatroom.');
+					}else{
+						alert('leave room fail: '+msg.error);	
+					}
+				}
+				break;
+			case 'send':
+				if(msg.success){
+					var $messageLine = $('<div><span class="received">' +msg.time
+							+ '</span><span class="user label label-info">' + msg.nickname
+							+ '</span><span class="message badge">' + msg.message
+							+ '</span></span>');
+					appendMessage($messageLine);
+					$('#message').val('');
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert(msg.error);
+					}else if(msg.errorCode==0x00000002){
+						alert('Send failed: Your login is invalid, please logout and try it again.');
+					}else if(msg.errorCode==0x00000007){
+						alert('Send failed: The chatter you want to send message to was not found.');
+					}else if(msg.errorCode==0x00000008){
+						alert('Send failed: You are not in the chatroom.');
+					}else if(msg.errorCode==0x00000009){
+						alert('Send failed: You are in blacklist.');
+					}else{
+						alert('Send failed: '+msg.error);	
+					}
+				}
+				break;
+			case 'send_marked':
+				if(msg.success){
+					var $messageLine = $('<div><span class="received">' +msg.time
+							+ '</span><span class="user label label-info">' + msg.nickname
+							+ '</span><span class="user label label-info">' + msg.deputy
+							+ '</span><span class="user label label-info">' + msg.avatar
+							+ '</span><span class="message badge">' + msg.message
+							+ '</span></span>');
+					appendMessage($messageLine);
+					$('#message').val('');
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert(msg.error);
+					}else if(msg.errorCode==0x00000002){
+						alert('Send failed: Your login is invalid, please logout and try it again.');
+					}else if(msg.errorCode==0x00000007){
+						alert('Send failed: The chatter you want to send message to was not found.');
+					}else if(msg.errorCode==0x00000008){
+						alert('Send failed: You are not in the chatroom.');
+					}else if(msg.errorCode==0x00000009){
+						alert('Send failed: You are in blacklist.');
+					}else{
+						alert('Send failed: '+msg.error);	
+					}
+				}
+				break;
+			case 'disconnect':
+				if(msg.success){
+					wsocket.close();
+					token=null;
+					$chatWindow.empty();
+					$('.chat-wrapper').hide();
+					$('.chat-signin').show();
+					$nickName.focus();
+				}else{
+					if(msg.errorCode==0x11110002){
+						alert(msg.error);
+					}else if(msg.errorCode==0x00000002){
+						alert('Disconnect failed: Your login is invalid, please logout and try it again.');
+					}else{
+						alert('Disconnect failed: '+msg.error);
+					}
+				}
+				break;
+			case 'message_push':
+				var $messageLine = $('<div><span class="received">' +msg.time
+						+ '</span><span class="user label label-info">' + msg.nickname
+						+ '</span><span class="message badge">' + msg.message
+						+ '</span></span>');
+				appendMessage($messageLine);
+				break;
+			case 'marked_message_push':
+				var $messageLine = $('<div><span class="received">' +msg.time
+						+ '</span><span class="user label label-info">' + msg.nickname
+						+ '</span><span class="user label label-info">' + msg.deputy
+						+ '</span><span class="user label label-info">' + msg.avatar
+						+ '</span><span class="message badge">' + msg.message
+						+ '</span></span>');
+				appendMessage($messageLine);
+				break;
+			case 'join_push':
+				var m=msg.nickname+' joins room: '+msg.room;
+				appendMessage(m);
+				chatters.push(msg.nickname);
+				refreshChatters();
+				break;
+			case 'part_push':
+				var m='<div>'+msg.nickname+' leaves room: '+msg.room+'</div>';
+				appendMessage(m);
+				var i=chatters.indexOf(msg.nickname);
+				if(i!=-1){
+					chatters.splice(i,1);
+					refreshChatters();
+				}
+				break;
+			case 'ping_push':
+				if(msg.success){
+				}else{
+					wsocket.close();
+					$chatWindow.empty();
+					$('.chat-wrapper').hide();
+					$('.chat-signin').show();
+					$nickName.focus();
+				}
+				break;
+		}
+	}
+
+	function leaveRoom() {
+		if(!wsocket)
+			return;
+		var json={};
+		json.command="part";
+		json.token=token;
+		json.room=room;
+		wsocket.send(JSON.stringify(json));
+	}
+	
+	function disconnect(){
+		if(!wsocket)
+			return;
+		var json={};
+		json.command='disconnect';
+		json.token=token;
+		wsocket.send(JSON.stringify(json));
+	}
+	
+	function refreshChatters(){
+		var content='';
+		$.each(chatters,function(i,o){
+			content+=o+', ';
+		});
+		$('#h2_chatters>div').replaceWith('<div>'+content+'</div>');
+	}
+	
+	function appendLog(m){
+		$('#log').append('<div>'+m+'</div>');
+		var logDiv=document.getElementById('log');
+		logDiv.scrollTop=logDiv.scrollHeight;
+	}
+	
+	function appendMessage(m){
+		$('#response').append(m);
+		var responseDiv=document.getElementById('response');
+		responseDiv.scrollTop=responseDiv.scrollHeight;
+	}
+
+	$(document).ready(function() {
+		$nickName = $('#nickname');
+		$message = $('#message');
+		$chatWindow = $('#response');
+		$('.chat-wrapper').hide();
+		$nickName.focus();
+		//$('#enterRoom').attr('disabled','disabled');
+		
+		$('#btnConnect').click(function(evt){
+			evt.preventDefault();
+			connect();
+		});
+		
+		$('#enterRoom').click(function(evt) {
+			evt.preventDefault();
+			join();
+		});
+		$('#do-chat').submit(function(evt) {
+			evt.preventDefault();
+			if($('#ckMarkedMessage').prop('checked')){
+				sendMarked();
+			}else{
+				send();	
+			}
+		});
+		
+		$('#leave-room').click(function(){
+			leaveRoom();
+		});
+		
+		$('#btnDisconnect').click(function(){
+			disconnect();
+		});
+		
+		$('#ckSendPersonal').click(function(){
+			if($('#ckSendPersonal').prop('checked')){
+				$('#divSendPersonal').show();
+			}else{
+				$('#divSendPersonal').hide();
+			}
+		});
+	});
+</script>
+-->
+</head>
+
+<body>
+<table>
+	<tr>
+	<td>
+	<button class="btn btn-large btn-block btn-primary" type="button" id="btnDisconnect">Disconnect</button>
+	</td>
+	</tr>
+	<tr>
+	<td>
+	<div class="container chat-signin">
+		<form class="form-signin">
+			<h2 class="form-signin-heading">Chat sign in</h2>
+			<label for="nickname">Nickname</label> <input type="text"
+				class="input-block-level" placeholder="Nickname" id="nickname">
+			<div class="btn-group">
+				<label for="chatroom">Chatroom</label> <select size="1"
+					id="chatroom">
+					<option>eric's room</option>
+					<option>悲伤大本营</option>
+					<option>Go hell</option>
+					<option>FUCK!</option>
+				</select>
+			</div>
+			<button class="btn btn-large" id="btnConnect">Connect</button>
+			<button class="btn btn-large btn-primary" type="submit"
+				id="enterRoom">Join Room</button>
+			<span id="spanStatus"></span>
+		</form>
+	</div>
+	<!-- /container -->
+
+	<div class="container chat-wrapper">
+		<form id="do-chat">
+			<h2 class="alert alert-success" id="h2_title"></h2>
+			<h2 class="alert alert-success" id="h2_chatters">
+				Current chatters:
+				<div></div>
+			</h2>
+				<div id="response"></div>
+			<fieldset>
+				<legend>Enter your message..</legend>
+				<div class="controls">
+					<input type="text" class="input-block-level" placeholder="Your message..." id="message" style="height:60px"/>
+					<input type="checkbox" id="ckMarkedMessage" />置顶消息
+					<input type="checkbox" id="ckSendPersonal" />单独发送
+					<div id="divSendPersonal" style="display:none;">
+					用户：<input type="text" class="input-block-level" id="personName" />
+					</div>
+					<input type="submit" class="btn btn-large btn-block btn-primary"
+						value="Send message" />
+					<button class="btn btn-large btn-block" type="button" id="leave-room">Leave
+						room</button>
+				</div>
+			</fieldset>
+		</form>
+	</div>
+	</td>
+	<td>
+		<div id="log"></div>
+	</td>
+	</tr>
+</table>
+</body>
+</html>

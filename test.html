@@ -1,0 +1,288 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<link href="http://cdn.bootcss.com/bootstrap/3.2.0/css/bootstrap.min.css" rel="stylesheet">
+		<style type="text/css">
+		body {
+			font-family: "Helvetica Neue", Helvetica, Microsoft Yahei, Hiragino Sans GB, WenQuanYi Micro Hei, sans-serif;
+		}
+		.chat{
+			float: right;
+			border: 1px solid #eee;
+		}
+		.chatContent{
+			width:300px;
+			height: 800px;		
+			background: #fff;
+			overflow-x: hidden;
+			overflow-y: scroll;	
+		}
+		.sendBox{
+			width:300px;
+			height: 150px;
+			background-color: #f5f5f5;
+			padding: 5px;
+		}
+		.chatItem .chatInfo{
+			color: #1e90ff;
+			margin: 0px;
+		}
+		.chatItem .message{
+			margin: 0;
+			padding-left: 18px;
+			color: #4a4a4a;
+			line-height: 20px;
+			word-break: break-all;			
+		}
+		</style>
+		<script src="http://cdn.bootcss.com/jquery/1.11.1/jquery.min.js"></script>
+
+		<script type="text/javascript">
+			var conn;
+			var roomId = "544e007ab99a88bc8b6c401e";
+			var serviceLocation = "ws://192.168.1.220:40001/chat/";
+			var token = '';
+
+			function startTimer(){
+				timerID=setInterval(function(){
+					var request = {
+						"c":"chat.ping",
+						"data":{"token":token,"roomId":roomId}
+					};
+					conn.send(JSON.stringify(request));
+				},60000);
+			}
+
+			function connect (roomId,serviceLocation) {
+				var request = {
+					"c":"chat.connect",
+					"data":{
+						"roomId":roomId,
+						"cookie":"b6b1610468227669ccdfcebda2d72676bcded43a-%00username%3Atest%00%00avatar%3Anengzhizhi%00%00level%3A22%00%00uid%3Anengzhizhi%00"
+					}
+				};
+				conn = new WebSocket(serviceLocation);
+				conn.onopen=function(e){
+					conn.send(JSON.stringify(request));
+				}
+				conn.onmessage = onReplyReceived;
+			}
+
+
+			function send(message) {
+				var request = {
+					"c" : "chat.send",
+					"data" : {
+							"token":token,
+							"message":message,
+							"roomId":"1001",
+							"cookie":"b6b1610468227669ccdfcebda2d72676bcded43a-%00username%3Atest%00%00avatar%3Anengzhizhi%00%00level%3A22%00%00uid%3Anengzhizhi%00"
+						}
+				}
+				conn.send(JSON.stringify(request));
+			}
+
+			function addToBlackList(target){
+				var request = {
+					"c" : "chat.silence",
+					"data" : {
+							"token":token,
+							"target":target,
+							"roomId":"1001"
+					}
+				};
+
+				conn.send(JSON.stringify(request));
+			}
+
+			function removeFromBlackList(target){
+				var request = {
+					"c" : "chat.desilence",
+					"data" : {
+							"token":token,
+							"target":target
+					}
+				};
+
+				conn.send(JSON.stringify(request));
+			}
+
+			function getManagers(){
+				var request = {
+					"c" : "chat.get_managers",
+					"data" : {
+							"token":token,
+							"roomId":"1001"
+					}
+				};
+
+				conn.send(JSON.stringify(request));				
+			}
+
+			function getManagerCount(){
+				var request = {
+					"c" : "chat.get_manager_count",
+					"data" : {
+							"token":token,
+							"roomId":"1001"
+					}
+				};
+
+				conn.send(JSON.stringify(request));				
+			}
+
+			function getChatters(){
+				var request = {
+					"c" : "chat.get_chatters",
+					"data" : {
+							"token":token,
+							"roomId":"1001",
+							"start":"0",
+							"count":"2"
+					}
+				};
+
+				conn.send(JSON.stringify(request));				
+			}
+
+			function getChatterCount(){
+				var request = {
+					"c" : "chat.get_chatter_count",
+					"data" : {
+							"token":token,
+							"roomId":"1001"
+					}
+				};
+
+				conn.send(JSON.stringify(request));				
+			}
+
+			function onReplyReceived(e){
+				appendMessage(e.data,"reply","2014-10-09");
+				var reply = JSON.parse(e.data);
+
+				if(reply.error != undefined){
+					alert("error");
+				}
+				else{
+					body = JSON.parse(JSON.stringify(reply.data));
+
+					switch(body.type){
+						case 'connect':
+							if(body.status=="success"){
+								token = body.token;
+							}else{
+								alert("connect Fail");
+							}
+						break;
+						case 'ping':
+							if(body.status=="success"){
+
+							}else{
+								conn.close();
+							}
+						break;
+						case 'send':
+							if(body.status="success"){
+
+							}else{
+								var errors = JSON.parse(reply.errors);
+								alert("errors");
+							}
+
+						break;
+						case 'ping_push':
+						break;
+						case 'add_to_blacklist':
+						break;
+						case 'remove_from_blacklist':
+						break;
+						case 'broadcast_push':
+							alert('broadcast_push');
+						break;
+						case 'message_push':
+							alert('message_push');
+						break;
+					}
+				}
+			}
+
+			function appendMessage(message,nickname,time){
+				$('#chatContent').append(
+						'<div class="chatItem"><p class="chatInfo"><span><img src="http://staticlive.douyutv.com/common/douyu/images/spot.png"></span><span class="nickname">'+nickname+'</span><span class="time">('+time+')</span></p><p class="message">'+message+'</p></div>'
+					);
+				var responseDiv=document.getElementById('chatContent');
+				responseDiv.scrollTop=responseDiv.scrollHeight;
+			}
+
+			//document.cookie = "PLAY_SESSION=be81f6968076cbceba3a6da598cd005439cb2d36-%00uid%3A540fcd301b92024c2230feec%00%00username%3Anengzhizhi%00%00nickname%3Anengzhizhi%00%00playerId%3A540fcd301b92024c2230feec%00%00city%3A%E9%95%BF%E6%B2%99%E5%B8%82%00";
+			connect(roomId,serviceLocation);
+			startTimer();
+
+
+			function broadcast(){
+				 $.post(
+				 			"http://192.168.1.220:40000/admin/chat/broadcast",
+				 			JSON.stringify(
+				 				{
+				 					roomId:"1001",
+				 					broadcastData:{
+				 						type:"broadcast_push",
+				 						manager:"管理员1",
+				 						action:"addToBlackList",
+				 						target:"张三"
+				 					}
+				 				}
+				 			),
+				 			function(result){
+    							$("span").html(result);
+  							}
+  						);
+			}
+
+			function setManager(){
+				 $.post(
+				 			"http://192.168.1.220:40000/admin/chat/setManager",
+				 			JSON.stringify(
+				 				{
+				 					roomId:"1001",
+			 						uid:"100101",
+			 						username:"管理员1",
+			 						avatar:"http://img.whonow.cn/19Ioa_12.png"
+				 				}
+				 			),
+				 			function(result){
+    							$("span").html(result);
+  							}
+  						);
+			}			
+
+		</script>
+	</head>
+	<body>
+		<a href="javascript:void(0)" onclick="send('123')">send</a>
+		<a href="javascript:void(0)" onclick="addToBlackList('100101')">add</a>
+
+		<a href="javascript:void(0)" onclick="broadcast()">broadcast</a>
+
+		<a href="javascript:void(0)" onclick="getManagers()">getManagers</a>
+
+		<a href="javascript:void(0)" onclick="getManagerCount()">getManagerCount</a>
+
+		<a href="javascript:void(0)" onclick="getChatters()">getChatters</a>
+
+		<a href="javascript:void(0)" onclick="getChatterCount()">getChatterCount</a>
+
+		<a href="javascript:void(0)" onclick="setManager()">setManager</a>
+		<div class="chat">
+			<div class="chatContent" id="chatContent">
+			</div>
+			<div class="sendBox">
+
+				<textarea class="form-control" rows="3" placeholder="请输入聊天内容" id="message"></textarea>
+
+				<a href="javascript:void(0)" class="btn btn-warning" style="margin:10px" onclick="send()">发送</a>
+			</div>
+		</div>		
+	</body>
+</html>

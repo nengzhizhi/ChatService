@@ -1,0 +1,6 @@
+#surefire
+#Sun Dec 21 14:49:38 CST 2014
+user.dir=E\:\\git\\vls_chat_service
+vertx.mods=target/mods
+localRepository=C\:\\Users\\m17x\\.m2\\repository
+basedir=E\:\\git\\vls_chat_service

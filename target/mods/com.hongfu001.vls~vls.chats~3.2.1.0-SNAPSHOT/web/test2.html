@@ -1,0 +1,51 @@
+<html>
+<head>
+	<meta charset="utf-8">
+</head>
+<body>
+	<form method="post" action="http://127.0.0.1:40000/admin/chat/broadcast">
+		<input type="text" name="roomId">
+		<input type="text" name="broadcastData">
+		<input type="submit" value="广播">
+	</form>
+
+	<form method="post" action="http://127.0.0.1:40000/vls/chat/getChatters">
+		<input type="text" name="roomId">
+		<input type="text" name="start">
+		<input type="text" name="count">
+		<input type="submit" value="获取用户列表">
+	</form>	
+
+	<form method="post" action="http://127.0.0.1:40000/admin/chat/getConnectors">
+		<input type="text" name="roomId">
+		<input type="submit" value="获取链接列表">
+	</form>
+
+
+	<form method="post" action="http://127.0.0.1:40000/admin/chat/setManager">
+		<input type="text" name="roomId">
+		<input type="text" name="username">
+		<input type="text" name="uid">
+		<input type="submit" value="设置管理员">
+	</form>
+
+	<form method="post" action="http://127.0.0.1:40000/vls/chat/getOnlineManagers">
+		<input type="text" name="roomId">
+		<input type="submit" value="获取房间在线管理员">
+	</form>	
+
+	<form method="post" action="http://127.0.0.1:40000/admin/chat/createRoom">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="text" name="roomTitle" placeholder="房间标题">
+		<input type="text" name="roomType" placeholder="房间类型">
+		<input type="submit" value="创建房间">
+	</form>	
+
+	<form method="post" action="http://127.0.0.1:40000/vls/chat/silence">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="text" name="target" placeholder="禁言对象">
+		<input type="text" name="duration" placeholder="禁言时间">
+		<input type="submit" value="禁言用户">
+	</form>			
+</body>
+</html>

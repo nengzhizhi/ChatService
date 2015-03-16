@@ -1,0 +1,89 @@
+<html>
+<head>
+	<meta charset="utf-8">
+</head>
+<body>
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/broadcast">
+		<input type="text" name="roomId">
+		<input type="text" name="broadcastData">
+		<input type="text" name="ignore">
+		<input type="submit" value="广播">
+	</form>
+
+	<form method="post" action="http://192.168.1.220:40000/vls/chat/getChatters">
+		<input type="text" name="roomId">
+		<input type="text" name="start">
+		<input type="text" name="count">
+		<input type="submit" value="获取用户列表">
+	</form>	
+
+	<form method="post" action="http://vls.whonow.cn:8086/admin/chat/getConnectors">
+		<input type="text" name="roomId">
+		<input type="submit" value="获取链接列表">
+	</form>
+
+
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/setManager">
+		<input type="text" name="roomId">
+		<input type="text" name="username">
+		<input type="text" name="uid">
+		<input type="submit" value="设置管理员">
+	</form>
+
+	<form method="post" action="http://192.168.1.220:40000/vls/chat/getOnlineManagers">
+		<input type="text" name="roomId">
+		<input type="submit" value="获取房间在线管理员">
+	</form>	
+
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/createRoom">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="text" name="roomTitle" placeholder="房间标题">
+		<input type="text" name="roomType" placeholder="房间类型">
+		<input type="submit" value="创建房间">
+	</form>	
+
+
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/getRooms">
+		<input type="submit" value="查看房间">
+	</form>
+
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/getRecords">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="submit" value="查看记录">
+	</form>
+
+	<form method="post" action="http://192.168.1.220:40000/admin/chat/singlecast">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="text" name="username" placeholder="用户名">
+		<input type="text" name="singlecastData" placeholder="单播数据">
+		<input type="submit" value="单播">
+	</form>
+
+	<form method="post" action="http://192.168.1.130:40000/admin/chat/showBuyCard">
+		<input type="text" name="roomId" placeholder="房间编号">
+		<input type="text" name="productId" placeholder="道具卡编号" value="54b63663807c72f9155a6fa3">
+		<input type="submit" value="开始道具卡">
+	</form>
+
+	<form method="post" action="http://192.168.1.220/app/product/buyCard">
+		<input type="text" name="actorId" placeholder="演员编号" value="5493e9adb99a31ec37bfd0dd">
+		<input type="text" name="interactionId" placeholder="交互编号" value="54c0ab1eb99ac6af6892f941">
+		<input type="text" name="roomId" placeholder="房间编号" value="544e007ab99a88bc8b6c401e">
+		<input type="submit" value="购买道具卡">
+	</form>
+
+	<form method="post" action="http://192.168.1.220/admin/product/interaction/stop">
+		<input type="text" name="interactionId" placeholder="交互编号" value="54c0ab1eb99ac6af6892f941">
+		<input type="submit" value="停止互动">
+	</form>
+
+	<form method="post" action="http://192.168.1.220/app/activity/updateActorScore">
+		<input type="text" name="actorId" placeholder="选手编号" value="5493e9adb99a31ec37bfd0dd">
+		<input type="text" name="type" value="add">
+		<input type="text" name="score" value="22">
+		<input type="text" name="roomId" placeholder="房间编号" value="544e007ab99a88bc8b6c401e">
+		<input type="submit" value="加分">
+	</form>
+
+</body>
+</html>

@@ -1,0 +1,54 @@
+<html>
+	<head>
+		<script type="text/javascript">
+			var roomId = "544e007ab99a88bc8b6c401e";
+			var serviceLocation = "ws://192.168.1.220:40001/chat/";
+			var token = '';
+			var cookie = '';
+
+			function connect(roomId,serviceLocation){
+				var request = {
+					"c":"chat.connect",
+					"data":{
+						"roomId":roomId
+					}
+				};
+				conn = new WebSocket(serviceLocation);
+				conn.onopen=function(e){
+					conn.send(JSON.stringify(request));
+				}
+				conn.onmessage = onReplyReceived;
+
+			}
+
+
+			function onReplyReceived (e) {
+				console.info(e.data);
+				var reply = JSON.parse(e.data);
+				console.info(reply.c);
+				
+				data = reply.data;
+				switch(reply.c){
+					case 'chat.connect':
+						if(data.status == "success"){
+							token = data.token;
+						}
+						break;
+					case 'chat.ping':
+						break;
+					case 'chat.send':
+						break;
+					case 'chat.message_push':
+						//此处添加接收消息代码
+						break;
+					case 'chat.broadcast_push':
+						//此处添加接收广播消息代码
+						break;
+				}
+			}
+
+			connect(roomId,serviceLocation);
+
+		</script>
+	</head>
+</html>
